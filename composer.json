@@ -1,6 +1,6 @@
 {
   "name": "padosoft/laravel-rebel-channels",
-  "description": "Astrazione canali/provider (SMS/WhatsApp/voice) per Laravel Rebel con fallback, health, cost e difese anti toll-fraud/IRSF + bot gate.",
+  "description": "Channel/provider abstraction (SMS/WhatsApp/voice) for Laravel Rebel: verification routing with fallback, cooldown, multi-dimensional rate limiting, and anti toll-fraud/IRSF defences. Part of padosoft/laravel-rebel-*.",
   "license": "MIT",
   "keywords": [
     "laravel",
@@ -31,6 +31,9 @@
     "pestphp/pest": "^4.0",
     "pestphp/pest-plugin-laravel": "^4.0"
   },
+  "repositories": [
+    { "type": "vcs", "url": "https://github.com/padosoft/laravel-rebel-core" }
+  ],
   "autoload": {
     "psr-4": {
       "Padosoft\\Rebel\\Channels\\": "src/"
@@ -51,7 +54,12 @@
   "scripts": {
     "test": "pest",
     "phpstan": "phpstan analyse --memory-limit=512M",
-    "pint": "pint"
+    "pint": "pint",
+    "check": [
+      "pint --test",
+      "@phpstan",
+      "@test"
+    ]
   },
   "config": {
     "sort-packages": true,
