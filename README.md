@@ -80,21 +80,24 @@ Depends on [`padosoft/laravel-rebel-core`](https://github.com/padosoft/laravel-r
 
 Sending a verification SMS, compared:
 
-| Capability | **Rebel Channels** | Twilio Verify SDK (direct) | Hand-rolled SMS + OTP |
-|---|:---:|:---:|:---:|
-| Send/check a code | ✅ | ✅ | ✅ |
-| **Provider fallback** on outage | ✅ | ❌ | ❌ |
-| Geo allowlist (IRSF) | ✅ | ➖ (manual in console) | ❌ |
-| Per-prefix velocity circuit breaker | ✅ | ❌ | ❌ |
-| Per-number rate limit / cooldown | ✅ | ➖ | ❌ |
-| Bot gate before spending | ✅ | ❌ | ❌ |
-| Reference signed + phone-bound (anti replay/injection) | ✅ | ❌ | ❌ |
-| Unified audit trail, number HMAC'd | ✅ | ❌ | ❌ |
-| Vendor-agnostic / swappable | ✅ | ❌ | ➖ |
+| Capability | **Rebel Channels** | Shopify | Twilio Verify SDK (direct) | Hand-rolled SMS + OTP |
+|---|:---:|:---:|:---:|:---:|
+| Send/check a code | ✅ | ✅ | ✅ | ✅ |
+| **Provider fallback** on outage | ✅ | ❌ | ❌ | ❌ |
+| Geo allowlist (IRSF) | ✅ | ❌ | ➖ (manual in console) | ❌ |
+| Per-prefix velocity circuit breaker | ✅ | ❌ | ❌ | ❌ |
+| Per-number rate limit / cooldown | ✅ | ➖ | ➖ | ❌ |
+| Bot gate before spending | ✅ | ➖ | ❌ | ❌ |
+| Reference signed + phone-bound (anti replay/injection) | ✅ | ❌ | ❌ | ❌ |
+| Unified audit trail, number HMAC'd | ✅ | ❌ | ❌ | ❌ |
+| Vendor-agnostic / swappable | ✅ | ❌ | ❌ | ➖ |
 
-> Legend: ✅ built-in · ➖ partial / manual · ❌ not available. Twilio Verify is a great
+> Legend: ✅ built-in · ➖ partial / manual / hosted-only · ❌ not available. Twilio Verify is a great
 > provider — Rebel Channels wraps it (and others) with the routing, fraud and audit layer
 > your app would otherwise have to build and maintain itself.
+> Shopify is a closed, hosted commerce platform: it sends its own customer OTPs but exposes
+> none of these low-level primitives to you — you can't self-host it, swap providers, or
+> configure its fraud controls, so it's a black box for this use case.
 
 ---
 
