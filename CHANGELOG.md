@@ -6,6 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-04
+
+### Added
+- `Channel::Telegram` and `Channel::Discord` cases, so the Telegram/Discord delivery providers can register and route through the channels router.
+
 ## [0.1.0] - 2026-06-03
 
 ### Added

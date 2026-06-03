@@ -12,4 +12,6 @@ enum Channel: string
     case Sms = 'sms';
     case WhatsApp = 'whatsapp';
     case Voice = 'voice';
+    case Telegram = 'telegram';
+    case Discord = 'discord';
 }
