@@ -30,7 +30,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "illuminate/contracts:${{ matrix.laravel }}" --no-update --no-interaction
+          composer require "illuminate/contracts:${{ matrix.laravel }}" "illuminate/support:${{ matrix.laravel }}" --no-update --no-interaction
           composer update --prefer-dist --no-interaction --no-progress
 
       - name: Pest

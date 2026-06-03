@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Padosoft\Rebel\Channels\Contracts\VerificationProvider;
 use Padosoft\Rebel\Channels\Enums\Channel;
+use Padosoft\Rebel\Channels\Results\VerificationResult;
 use Padosoft\Rebel\Channels\Routing\ProviderRegistry;
 use Padosoft\Rebel\Channels\Routing\VerificationRouter;
 use Padosoft\Rebel\Channels\Testing\FakeVerificationProvider;
@@ -75,6 +77,37 @@ it('counts the attempt even when every provider fails (no rate-limit bypass)', f
     expect($router->start(phone(), Channel::Sms, ctx())->reason)->toBe('all_providers_failed')
         ->and($router->start(phone(), Channel::Sms, ctx())->reason)->toBe('all_providers_failed')
         ->and($router->start(phone(), Channel::Sms, ctx())->reason)->toBe('rate_limited');
+});
+
+it('preserves a provider reference that contains the delimiter character', function (): void {
+    app(ProviderRegistry::class)->register(new class implements VerificationProvider
+    {
+        public function key(): string
+        {
+            return 'pipe';
+        }
+
+        public function supports(Channel $channel): bool
+        {
+            return true;
+        }
+
+        public function start(PhoneIdentifier $phone, Channel $channel, SecurityContext $context): VerificationResult
+        {
+            return VerificationResult::started('pipe', 'a|b|c');
+        }
+
+        public function check(PhoneIdentifier $phone, string $code, ?string $reference, SecurityContext $context): VerificationResult
+        {
+            // The provider must receive its reference intact, '|' included.
+            return $reference === 'a|b|c' ? VerificationResult::approve('pipe') : VerificationResult::deny('pipe', 'bad_ref');
+        }
+    });
+
+    $router = app(VerificationRouter::class);
+    $start = $router->start(phone(), Channel::Sms, ctx());
+
+    expect($router->check(phone(), 'x', (string) $start->reference, ctx())->approved())->toBeTrue();
 });
 
 it('blocks when bot protection fails', function (): void {

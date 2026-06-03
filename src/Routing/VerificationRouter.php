@@ -44,24 +44,24 @@ final class VerificationRouter
             return $this->blocked($phone, $channel, 'bot_denied');
         }
 
+        // Per-number rate limit FIRST and ATOMICALLY: a single increment-and-compare (no
+        // check-then-hit race), counted up front so a provider outage can't bypass it. Doing
+        // it before the fraud guard means a throttled number never reaches — and never burns —
+        // the shared per-prefix budget.
+        $throttleKey = $this->throttleKey($phone, $channel);
+        if ($this->limiter->hit($throttleKey, $this->intConfig('rate_limit.window_seconds', 3600)) > $this->intConfig('rate_limit.max_per_window', 5)) {
+            return $this->blocked($phone, $channel, 'rate_limited');
+        }
+
         $decision = $this->fraud->inspect($phone, $channel, $context);
         if (! $decision->allowed) {
             return $this->blocked($phone, $channel, $decision->reason ?? 'fraud_blocked');
-        }
-
-        $throttleKey = $this->throttleKey($phone, $channel);
-        if ($this->limiter->tooManyAttempts($throttleKey, $this->intConfig('rate_limit.max_per_window', 5))) {
-            return $this->blocked($phone, $channel, 'rate_limited');
         }
 
         $providers = $this->orderedProviders($channel);
         if ($providers === []) {
             return $this->blocked($phone, $channel, 'no_provider');
         }
-
-        // Count the attempt UP FRONT: a provider outage (or an attacker forcing failures)
-        // must not be a way to bypass the per-number rate limit.
-        $this->limiter->hit($throttleKey, $this->intConfig('rate_limit.window_seconds', 3600));
 
         foreach ($providers as $provider) {
             $result = $provider->start($phone, $channel, $context);
@@ -152,24 +152,21 @@ final class VerificationRouter
     }
 
     /**
-     * Build a tamper-evident reference: a pipe-delimited payload (provider, channel,
-     * provider-ref, phone hash) plus a keyed HMAC over it. The phone hash binds the
-     * reference to one number so it cannot be replayed by another user.
+     * Build a tamper-evident reference: a visible pipe-delimited payload (provider,
+     * channel, provider-ref) plus a keyed HMAC computed over payload + phone number. The
+     * phone is mixed INTO the keyed MAC, never exposed in the payload — so the reference
+     * leaks no (enumerable) phone digest, yet a reference for one number fails to verify
+     * for any other (no cross-user replay).
      */
     private function packReference(string $providerKey, Channel $channel, ?string $providerRef, PhoneIdentifier $phone): string
     {
-        $payload = implode('|', [
-            $providerKey,
-            $channel->value,
-            $providerRef ?? '',
-            $this->phoneHash($phone),
-        ]);
+        $payload = implode('|', [$providerKey, $channel->value, $providerRef ?? '']);
 
-        return $payload.'~'.$this->hasher->hash($payload)->hash;
+        return $payload.'~'.$this->signReference($payload, $phone);
     }
 
     /**
-     * Verify a reference's signature and phone binding. Returns [providerKey, channel,
+     * Verify a reference's signature + phone binding. Returns [providerKey, channel,
      * providerRef] when valid, or null when forged/tampered/for another number.
      *
      * @return array{string, Channel, string}|null
@@ -184,20 +181,18 @@ final class VerificationRouter
         $payload = substr($reference, 0, $separator);
         $mac = substr($reference, $separator + 1);
 
-        if (! hash_equals($this->hasher->hash($payload)->hash, $mac)) {
+        if (! hash_equals($this->signReference($payload, $phone), $mac)) {
             return null;
         }
 
-        $parts = explode('|', $payload);
-        if (count($parts) !== 4) {
+        // Limit to 3 so a provider reference that itself contains '|' is preserved whole
+        // in the third field instead of over-splitting and being wrongly rejected.
+        $parts = explode('|', $payload, 3);
+        if (count($parts) !== 3) {
             return null;
         }
 
-        [$providerKey, $channelValue, $providerRef, $phoneHash] = $parts;
-
-        if (! hash_equals($phoneHash, $this->phoneHash($phone))) {
-            return null;
-        }
+        [$providerKey, $channelValue, $providerRef] = $parts;
 
         $channel = Channel::tryFrom($channelValue);
         if ($channel === null) {
@@ -207,9 +202,10 @@ final class VerificationRouter
         return [$providerKey, $channel, $providerRef];
     }
 
-    private function phoneHash(PhoneIdentifier $phone): string
+    /** Keyed (peppered) HMAC over the payload bound to the phone number. */
+    private function signReference(string $payload, PhoneIdentifier $phone): string
     {
-        return hash('sha256', $phone->normalized());
+        return $this->hasher->hash($payload.'|'.$phone->normalized())->hash;
     }
 
     private function recordEvent(string $type, PhoneIdentifier $phone, ?Channel $channel, ?string $provider, ?string $reason): void

@@ -44,11 +44,13 @@ final class FraudGuard
         if ($cap > 0) {
             $key = 'rebel-channels:prefix:'.$channel->value.':'.$this->coarsePrefix($normalized);
 
-            if ($this->limiter->tooManyAttempts($key, $cap)) {
+            // Atomic increment-and-compare: under concurrent traffic two requests can't both
+            // pass a separate read-then-write. This runs only for send-eligible attempts
+            // (the router calls inspect() AFTER the per-number rate limit), so a throttled
+            // number can't burn the shared prefix budget and block unrelated users.
+            if ($this->limiter->hit($key, $this->intConfig('per_prefix.window_seconds', 3600)) > $cap) {
                 return FraudDecision::block('prefix_cap');
             }
-
-            $this->limiter->hit($key, $this->intConfig('per_prefix.window_seconds', 3600));
         }
 
         return FraudDecision::allow();
