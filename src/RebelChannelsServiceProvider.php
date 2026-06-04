@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Padosoft\Rebel\Channels;
 
 use Padosoft\Rebel\Channels\Fraud\FraudGuard;
+use Padosoft\Rebel\Channels\Routing\DeliveryChannelRegistry;
 use Padosoft\Rebel\Channels\Routing\ProviderRegistry;
 use Padosoft\Rebel\Channels\Routing\VerificationRouter;
 use Padosoft\Rebel\Channels\Support\CacheRateLimiter;
@@ -33,6 +34,7 @@ final class RebelChannelsServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(ProviderRegistry::class);
+        $this->app->singleton(DeliveryChannelRegistry::class);
         $this->app->singleton(FraudGuard::class);
         $this->app->singleton(VerificationRouter::class);
 
