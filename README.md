@@ -1,5 +1,8 @@
 # Laravel Rebel — Channels
 
+> Official documentation: https://doc.laravel-rebel.padosoft.com
+
+
 > **One safe, fault-tolerant pipe for phone verifications (SMS / WhatsApp / voice).** You ask "verify this number"; Rebel Channels runs it through a bot gate, anti toll-fraud/IRSF defences, a per-number rate limit, and **provider fallback** — then audits every decision (number always HMAC'd). It is provider-agnostic: plug in `laravel-rebel-channel-twilio` (or your own). Part of the `padosoft/laravel-rebel-*` suite.
 
 <p align="center">
@@ -268,3 +271,4 @@ composer pint      # code style
 ```
 
 **License:** MIT — see [LICENSE](LICENSE). Part of the [`padosoft/laravel-rebel`](https://github.com/padosoft) suite.
+
