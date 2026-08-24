@@ -28,11 +28,15 @@
     "larastan/larastan": "^3.0",
     "laravel/pint": "^1.18",
     "orchestra/testbench": "^10.0|^11.0",
+    "padosoft/laravel-iam-contracts": "^1.4",
     "pestphp/pest": "^4.0",
     "pestphp/pest-plugin-laravel": "^4.0"
   },
   "repositories": [
-    { "type": "vcs", "url": "https://github.com/padosoft/laravel-rebel-core" }
+    {
+      "type": "vcs",
+      "url": "https://github.com/padosoft/laravel-rebel-core"
+    }
   ],
   "autoload": {
     "psr-4": {
@@ -69,5 +73,8 @@
     }
   },
   "minimum-stability": "stable",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "suggest": {
+    "padosoft/laravel-iam-contracts": "Enables ChannelElevationNotifier: out-of-band JIT scope-elevation notifications for laravel-iam-agents delegation grants (^1.4)."
+  }
 }

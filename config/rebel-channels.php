@@ -53,4 +53,19 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | IAM JIT scope elevation notifications (laravel-iam-agents >= 1.1)
+    |--------------------------------------------------------------------------
+    | ChannelElevationNotifier tries these channels in order and stops at the
+    | first accepted delivery. The message is informative only — approval always
+    | happens through the step-up re-consent in the app, never via message.
+    | `message` overrides the default template; placeholders: :agent, :scopes,
+    | :reason, :expires.
+    */
+    'elevation' => [
+        'channels' => ['sms'],
+        'message' => null,
+    ],
+
 ];

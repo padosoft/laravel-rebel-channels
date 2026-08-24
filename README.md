@@ -218,6 +218,30 @@ use Padosoft\Rebel\Core\Models\RebelAuthEvent;
 RebelAuthEvent::query()->where('event_type', 'channel.verification.blocked')->get(); // see WHY sends were stopped
 ```
 
+**6. IAM JIT elevation notifications** ([laravel-iam-agents](https://github.com/padosoft/laravel-iam-agents) ≥ 1.1) —
+when an AI agent asks for scopes outside its delegation grant, nudge the delegating human on
+their own channels, with multi-channel fallback. The message **informs only** (secret-free,
+configurable template): approval always happens through the in-app step-up re-consent, never by
+replying to a message. Total delivery failure throws, so iam-agents audits `notify_failed` and
+the request stays approvable in self-service.
+
+```php
+// config/iam-agents.php — point IAM at the notifier:
+'elevation' => ['notifier' => \Padosoft\Rebel\Channels\Delegation\ChannelElevationNotifier::class],
+
+// AppServiceProvider — only YOUR app knows the user's verified number:
+$this->app->bind(
+    \Padosoft\Rebel\Channels\Delegation\ElevationRecipientResolver::class,
+    MyUserPhoneResolver::class,
+);
+
+// config/rebel-channels.php — fallback order (first accepted delivery wins):
+'elevation' => ['channels' => ['whatsapp', 'sms']],
+```
+
+Every hop is audited with the number HMAC'd: `channel.elevation.notified` / `channel_failed` /
+`notify_failed` / `no_recipient`.
+
 ---
 
 ## `.env.example`
