@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 
 ## [Unreleased]
 
-## [0.1.2] - 2026-08-24
+## [0.1.3] - 2026-08-24
 
 ### Added
 - **`ChannelElevationNotifier`** (`src/Delegation/`): out-of-band notifier for IAM JIT scope
@@ -22,6 +22,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 - `elevation` config section (`channels` fallback order, `message` template with `:agent`,
   `:scopes`, `:reason`, `:expires` placeholders).
 - `release` workflow (workflow_dispatch tag + GitHub release, ecosystem pattern).
+
+## [0.1.2] - 2026-06-04
+
+### Added
+- **`DeliveryChannelRegistry`** (singleton): the delivery-side counterpart of
+  `ProviderRegistry` — delivery channels (Telegram/Discord/Twilio/Vonage/Bird…) register into
+  one discoverable place and resolve by key or by supported `Channel`. Non-breaking.
+  *(Entry backfilled: the release existed but the changelog had drifted.)*
 
 ## [0.1.1] - 2026-06-04
 
@@ -46,7 +54,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 - Audit of every routing decision with the phone number HMAC'd (no plaintext PII).
 - Config file, CI matrix (PHP 8.3/8.4/8.5 × Laravel 12/13), Pest suite, PHPStan level max, Pint.
 
-[Unreleased]: https://github.com/padosoft/laravel-rebel-channels/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/padosoft/laravel-rebel-channels/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/padosoft/laravel-rebel-channels/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/padosoft/laravel-rebel-channels/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/padosoft/laravel-rebel-channels/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/padosoft/laravel-rebel-channels/releases/tag/v0.1.0
